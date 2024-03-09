@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Contact } from "../types";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { parse } from 'date-fns'
 
 interface AddContactFormProps {
@@ -18,24 +16,12 @@ const AddContactForm: React.FC<AddContactFormProps> = ({ contactToEdit, onAddOrE
     platform: "SMS", // Default to SMS
   });
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement> | Date ) => {
-
-	if (event instanceof Date) {
-		const offset = event.getTimezoneOffset();
-		const localDate = new Date(event.getTime() - (offset * 60 * 1000));
-		setSelectedDate(localDate);
-		setNewContact({
-			...newContact,
-			birthday: localDate.toISOString().split('T')[0].split('-').reverse().join('/')
-		});
-	} else {
-		setNewContact({
-			...newContact,
-			[event.target.name]: event.target.value
-		});
-	}
+	setNewContact({
+		...newContact,
+		[event.target.name]: event.target.value
+	});
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -84,62 +70,60 @@ const AddContactForm: React.FC<AddContactFormProps> = ({ contactToEdit, onAddOrE
 		birthday: "",
 		platform: "SMS",
 	});
-	setSelectedDate(null);
   };
 
 useEffect(() => {
   if (contactToEdit) {
     setNewContact(contactToEdit); // This should include the ID
-    const parsedDate = contactToEdit.birthday ? parse(contactToEdit.birthday, "dd/MM/yyyy", new Date()) : null;
-    setSelectedDate(parsedDate);
-	console.log("parseDate:", parsedDate, contactToEdit.birthday);
   }
 }, [contactToEdit]);
 
   return (
-    <form className="card shadow-lg p-6" onSubmit={handleSubmit}>
-      <h2 className="text-2xl font-semibold mb-4">Add a New Contact</h2>
-      <div className="form-control">
-        <label className="label">Name</label>
-        <input
-          type="text"
-          name="name"
-          className="input input-bordered"
-          value={newContact.name}
-          onChange={handleInputChange}
-        />
-        <label className="label">Birthday</label>
-        <DatePicker
-          name="birthday"
-          selected={selectedDate}
-          onChange={handleInputChange}
-          dateFormat="dd/MM/yyyy" // Adjust the date format if needed
-          className="input input-bordered"
-        />
-        <label className="label">Platform</label>
-        <select
-          name="platform"
-          className="select select-bordered"
-          value={newContact.platform}
-          onChange={handleInputChange}
-        >
-          <option value="SMS">SMS</option>
-          <option value="Messenger">Messenger</option>
-          {/* Add more platform options if needed */}
-        </select>
-      </div>
-      {/* Add similar fields for Birthday and Platform */}
-      <button type="submit" className="btn btn-primary mt-4">
-        Save Contact
-      </button>
-      <button
-        type="button"
-        className="btn btn-ghost mt-4"
-        onClick={onCancelEdit}
-      >
-        Cancel
-      </button>
-    </form>
+	<dialog id="addContactForm" className="modal modal-bottom sm:modal-middle">
+  		<div className="modal-box">
+			<h2 className="text-2xl font-semibold mb-4">Add a New Contact</h2>
+			<form className="space-y-4" onSubmit={handleSubmit}>
+				<div className="form-control space-y-4">
+					<input
+					type="text"
+					name="name"
+					className="input input-bordered"
+					value={newContact.name}
+					onChange={handleInputChange}
+					placeholder="Name"
+					/>
+					<div className="join join-vertical">
+						<label className="label">Birthday</label>
+						<input
+						type="date"
+						name="birthday"
+						onChange={handleInputChange}
+						value={newContact.birthday}
+						className="input input-bordered"
+						/>
+					</div>
+					<div className="join join-vertical">
+						<label className="label">Platform</label>
+						<select
+						name="platform"
+						className="select select-bordered"
+						value={newContact.platform}
+						onChange={handleInputChange}
+						>
+						<option value="SMS">SMS</option>
+						<option value="Messenger">Messenger</option>
+						{/* Add more platform options if needed */}
+						</select>
+					</div>
+				</div>
+				{/* Add similar fields for Birthday and Platform */}
+				<div className="flex gap-4">
+					<button type="submit" className="btn btn-primary mt-4">Save Contact</button>
+					<button type="button" className="btn btn-ghost mt-4" onClick={onCancelEdit}>Cancel</button>
+				</div>
+			</form>
+		</div>
+	</dialog>
   ); 
 
 };

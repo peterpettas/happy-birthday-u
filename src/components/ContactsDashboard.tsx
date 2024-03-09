@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Contact } from '../types';
 import AddContactForm from './AddContactForm';
+import Image from 'next/image';
 
 const ContactsDashboard: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -15,7 +16,6 @@ const ContactsDashboard: React.FC = () => {
   }
 
   const handleAddContactClick = () => {
-    console.log("showAddForm:", showAddForm);
     setShowAddForm(true);
   };
 
@@ -65,7 +65,16 @@ const ContactsDashboard: React.FC = () => {
       setContacts(JSON.parse(storedContacts));
       console.log("storedContacts:", storedContacts);
     }
-  }, []); // Empty dependency array: Execute just once on component mount
+    const modal = document.getElementById("addContactForm");
+    if (showAddForm) {
+      modal?.showModal();
+    } else {
+      // Optional: Check if the dialog is already open to avoid errors
+      if (modal?.open) {
+        modal.close();
+      }
+    }
+  }, [showAddForm]); // Empty dependency array: Execute just once on component mount
 
   return (
     <div className="container mx-auto p-5">
@@ -73,29 +82,61 @@ const ContactsDashboard: React.FC = () => {
       <button className="btn btn-primary" onClick={handleAddContactClick}>
         Add Contact
       </button>
-      <ul className="list-disc list-inside">
-        {contacts.map((contact) => (
-          <li key={contact.id}>
-            <span>
-              {contact.name} - {contact.birthday} | ({contact.platform})
-            </span>
-            <span>
-              <button
-                className="btn btn-xs btn-info mr-2"
-                onClick={() => startEditContact(contact.id)}
-              >
-                Edit
-              </button>
-              <button
-                className="btn btn-xs btn-error"
-                onClick={() => deleteContact(contact.id)}
-              >
-                Delete
-              </button>
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-x-auto">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Birthday</th>
+              <th>Platform</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {contacts.map((contact) => (
+              <tr key={contact.id}>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <div className="avatar">
+                      <div className="mask mask-squircle w-12 h-12">
+                        <Image src={`https://avatar.iran.liara.run/username?username=${contact.name}`} width={48} height={48} alt="Avatar" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-bold">{contact.name}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{contact.birthday.split("-").reverse().join("/")}</td>
+                <td>{contact.platform}</td>
+                <th>
+                  <button
+                    className="btn btn-xs btn-info mr-2"
+                    onClick={() => startEditContact(contact.id)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-xs btn-error"
+                    onClick={() => deleteContact(contact.id)}
+                  >
+                    Delete
+                  </button>
+                </th>
+              </tr>
+            ))}
+          </tbody>
+          {/* foot */}
+          <tfoot>
+            <tr>
+              <th>Name</th>
+              <th>Birthday</th>
+              <th>Platform</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
       {showAddForm && (
         <AddContactForm
           contactToEdit={editContact}
